@@ -5,12 +5,9 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 
-import com.example.didoy.sunshine.Fragment.ForeCastFragment;
 import com.example.didoy.sunshine.data.WeatherContract;
-import com.example.didoy.sunshine.data.WeatherDBHelper;
 
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
