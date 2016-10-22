@@ -10,11 +10,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.didoy.sunshine.Fragment.ForeCastFragment;
-import com.example.didoy.sunshine.R;
-import com.example.didoy.sunshine.Utility;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 /**
  * Created by Didoy on 10/22/2016.
