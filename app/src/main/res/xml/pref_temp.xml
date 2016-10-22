@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+        android:title="@string/preference_temperature_label"
+        android:summary="@string/preference_temperature_header"
+        android:key="@string/preference_temperature_key"
+        android:defaultValue="@string/preference_temperature_default"
+        android:entryValues="@array/prefer_temp_option"
+        android:entries="@array/prefer_temp_option"
+        />
+</PreferenceScreen>
