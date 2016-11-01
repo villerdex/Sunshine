@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import com.example.didoy.sunshine.data.WeatherContract;
 import com.example.didoy.sunshine.data.WeatherDBHelper;
 
-import static android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE;
 import static junit.framework.Assert.assertTrue;
 
 /**

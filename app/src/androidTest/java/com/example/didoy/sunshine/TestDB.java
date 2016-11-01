@@ -7,7 +7,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.test.AndroidTestCase;
 import android.util.Log;
 
 import com.example.didoy.sunshine.data.WeatherContract;
@@ -16,7 +15,7 @@ import com.example.didoy.sunshine.data.WeatherDBHelper;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+
 import static org.junit.Assert.*;
 
 /**

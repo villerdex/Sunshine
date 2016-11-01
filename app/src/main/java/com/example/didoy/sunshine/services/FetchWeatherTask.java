@@ -1,4 +1,4 @@
-package com.example.didoy.sunshine;
+package com.example.didoy.sunshine.services;
 
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.example.didoy.sunshine.Utility.Utility;
 import com.example.didoy.sunshine.data.WeatherContract;
 
 import org.json.JSONArray;
@@ -21,13 +22,18 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
 
 /**
  * Created by Didoy on 10/14/2016.
+ *
+ * This is no longer being used in the project
+ * I did not delete this as only reference for AsyncTask
+ *
+ *
  */
+
 
 
 public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
@@ -204,7 +210,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
             JSONObject dayForeCast = weatherArray.getJSONObject(i);
 
             dateTime = dayForeCast.getLong(OWM_DATETIME);
-            day = getReadableDateString(dateTime);
+            day = Utility.getReadableDateString(dateTime);
 
             pressure = dayForeCast.getDouble(OWM_PRESSURE);
             humidity = dayForeCast.getInt(OWM_HUMIDITY);
@@ -247,9 +253,8 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
 
             }
 
-
             hignAndLow = formatHighAndLow(high, low);
-            day = getReadableDateString(dateTime);
+            day = Utility.getReadableDateString(dateTime);
 
             resultStr[i] = day + " - " + description + " - " + hignAndLow;
         }
@@ -260,11 +265,6 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
         return resultStr;
 
     }
-
-    private String formatHighAndLow(double H, double Low) {
-        return String.valueOf(Low).substring(0, 2) + "/" + String.valueOf(H).substring(0, 2);
-    }
-
 
     private long addLocation(String locationSetting, String cityName, double lat, double lon){
 
@@ -292,16 +292,14 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
 
             return ContentUris.parseId(locationInsertUri);
         }
+    }
+
+    private String formatHighAndLow(double H, double Low) {
+        return String.valueOf(Low).substring(0, 2) + "/" + String.valueOf(H).substring(0, 2);
+    }
 
 
-    }
-    private String getReadableDateString(long time){
-        // Because the API returns a unix timestamp (measured in seconds),
-        // it must be converted to milliseconds in order to be converted to valid date.
-        Date date = new Date(time * 1000);
-        SimpleDateFormat format = new SimpleDateFormat("E, MMM d");
-        return format.format(date).toString();
-    }
+
 
 
 }

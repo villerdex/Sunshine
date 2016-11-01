@@ -1,17 +1,14 @@
 package com.example.didoy.sunshine.Fragment;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -21,16 +18,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
 
-import com.example.didoy.sunshine.Activity.DetailActivity;
 import com.example.didoy.sunshine.Activity.SettingsActivity;
-import com.example.didoy.sunshine.FetchWeatherTask;
 import com.example.didoy.sunshine.R;
-import com.example.didoy.sunshine.Utility;
+import com.example.didoy.sunshine.Utility.Utility;
 import com.example.didoy.sunshine.data.WeatherContract;
-import com.example.didoy.sunshine.data.WeatherContract.WeatherEntry;
 import com.example.didoy.sunshine.data.WeatherContract.LocationEntry;
+import com.example.didoy.sunshine.data.WeatherContract.WeatherEntry;
+import com.example.didoy.sunshine.sync.SunshineSyncAdapter;
 
 import java.util.Date;
 
@@ -43,10 +38,13 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
 
     static final String LOG_TAG = ForeCastFragment.class.getSimpleName();
     private String mlocation;
+    private boolean mUseTodaylayout = false;
 
-    private SimpleCursorAdapter simpleCursorAdapter;
+    private ForeCastAdapter mForeCastAdapter;
     public static final int LoaderID  = 0;
-    ListView listView;
+    private ListView listView;
+    private int CURSOR_POSITION = ListView.INVALID_POSITION;
+    private static final String SELECTED_KEY = "selected_position";
 
     String[] FORECAST_COLUMNS = {
             WeatherEntry.TABLE_NAME + "." +WeatherEntry._ID,
@@ -55,6 +53,10 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
             WeatherEntry.COLUMN_MIN,
             WeatherEntry.COLUMN_MAX,
             LocationEntry.COLUMN_LOCATION_SETTING,
+            WeatherEntry.COLUMN_HUMIDITY,
+            WeatherEntry.COLUMN_WIND_SPEED,
+            WeatherEntry.COLUMN_PRESSURE,
+            WeatherEntry.COLUMN_WEATHER_ID
     };
 
 //    indices that are tied to FORECAST_COLUMNS, if FORECAST_COLUMNS changes then these must change
@@ -64,6 +66,15 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
     public static final int COL_WEATHER_MIN = 3;
     public static final int COL_WEATHER_MAX = 4;
     public static final int COL_LOCATION_SETTING = 5;
+    public static final int COL_WEATHER_HUMIDITY = 6;
+    public static final int COL_WEATHER_WINDSPEED= 7;
+    public static final int COL_WEATHER_PRESSURE = 8;
+    public static final int COL_WEATHER_CONDITION_ID = 9;
+
+
+    public interface CallBack {
+        public void onItemSelected(String date);
+    }
 
 
     public ForeCastFragment() {
@@ -73,8 +84,9 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        setHasOptionsMenu(true);
         getLoaderManager().initLoader(LoaderID, null, this);
+        setHasOptionsMenu(true);
+
     }
 
     @Override
@@ -91,85 +103,46 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
         }
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+
+        if (CURSOR_POSITION != ListView.INVALID_POSITION){
+            outState.putInt(SELECTED_KEY, CURSOR_POSITION);
+        }
+        super.onSaveInstanceState(outState);
+    }
+
     @Nullable
         @Override
         public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-             simpleCursorAdapter = new SimpleCursorAdapter(
-                    getActivity(),
-                    R.layout.list_item_forecast,
-                    null,
-                    new String[]{
-                            WeatherEntry.COLUMN_DATETEXT,
-                            WeatherEntry.COLUMN_SHORT_DESC,
-                            WeatherEntry.COLUMN_MIN,
-                            WeatherEntry.COLUMN_MAX
-                    },
-
-                    new int[]{
-                            R.id.list_item_date_textview,
-                            R.id.list_item_forecast_textview,
-                            R.id.list_item_low_textview,
-                            R.id.list_item_high_textview
-                    },
-                    0
-            );
-
-            simpleCursorAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
-                @Override
-                public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
-                    boolean isMetric = Utility.isMetric(getActivity());
-
-                    switch (columnIndex){
-
-                        case COL_WEATHER_MAX:
-                        case COL_WEATHER_MIN:
-                            ((TextView) view).setText(Utility.formatTemperature( cursor.getDouble(columnIndex), isMetric));
-                            return true;
-                        case COL_WEATHER_DATE:
-                            String dateString = cursor.getString(columnIndex);
-                            ((TextView) view).setText(Utility.formatDate(dateString));
-
-                            return true;
-                    }
-
-
-                    return false;
-                }
-            });
+             mForeCastAdapter = new ForeCastAdapter(getActivity(), null, 0);
 
             View rootView = inflater.inflate(R.layout.fragment_forcast_layout, container, false);
 
             listView = (ListView) rootView.findViewById(R.id.listview_forecast);
-            listView.setAdapter(simpleCursorAdapter);
+            listView.setAdapter(mForeCastAdapter);
 
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                    SimpleCursorAdapter simpleCursorAdapter = (SimpleCursorAdapter) parent.getAdapter();
+                    mForeCastAdapter = (ForeCastAdapter) parent.getAdapter();
 
-                    Cursor cursor =  simpleCursorAdapter.getCursor();
+                    Cursor cursor =  mForeCastAdapter.getCursor();
 
                     if (cursor != null && cursor.moveToPosition(position)){
-//                        boolean isMetric = Utility.isMetric(getActivity());
-
-//                        String foreCast = String.format("%s - %s -%s/%s",
-//                                Utility.formatDate(cursor.getString(COL_WEATHER_DATE)),
-//                                cursor.getString(COL_WEATHER_DESC),
-//                                Utility.formatTemperature(cursor.getDouble(COL_WEATHER_MIN), isMetric ),
-//                                Utility.formatTemperature(cursor.getDouble(COL_WEATHER_MAX), isMetric )
-//                        );
-
-                        // Start the Detail activity intent
-                        Intent intent = new Intent(getActivity(), DetailActivity.class);
-                        intent.putExtra(DetailActivity.DATE_KEY, cursor.getString(COL_WEATHER_DATE));
-                        startActivity(intent);
+                            ((CallBack) getActivity()).onItemSelected(cursor.getString(COL_WEATHER_DATE));
+                             CURSOR_POSITION = position;
                     }
-
                 }
             });
 
+                if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)){
+                    CURSOR_POSITION = savedInstanceState.getInt(SELECTED_KEY);
+                }
+
+            mForeCastAdapter.setmUseTodaylayout(mUseTodaylayout);
 
             return rootView;
         }
@@ -198,8 +171,6 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
     // Method from Callback interface
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-
-
         String startDate = WeatherContract.dateToMills(new Date());
 
         String sortOrder = WeatherEntry.COLUMN_DATETEXT + " ASC";
@@ -207,7 +178,7 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
         mlocation = Utility.getPreferredLocation(getActivity());
         Uri weatherURI = WeatherEntry.buildWeatherLocationWithStartDate(mlocation , startDate);
 
-        CursorLoader loader =  new CursorLoader(
+        return new CursorLoader(
                 getActivity(),
                 weatherURI,
                 FORECAST_COLUMNS,
@@ -215,26 +186,47 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
                 null,
                 sortOrder
         );
-
-        return loader;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor dataCursor) {
-        simpleCursorAdapter.swapCursor(dataCursor);
+
+        int x = dataCursor.getCount();
+        mForeCastAdapter.swapCursor(dataCursor);
+
+        if (CURSOR_POSITION != ListView.INVALID_POSITION){
+            listView.setSelection(CURSOR_POSITION  );
+        }
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        simpleCursorAdapter.swapCursor(null);
+        mForeCastAdapter.swapCursor(null);
     }
-
 
     private void updateWeather(){
-        FetchWeatherTask weatherTask = new FetchWeatherTask(getActivity());
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String location = sharedPreferences.getString( getString(R.string.preference_location_key), getString(R.string.preference_location_default) );
-        weatherTask.execute(location); // call the doInBackground method in FetchWeatherTask class
+
+        SunshineSyncAdapter.syncImmediately(getActivity());
+
+/*
+  Fires the alarm in SunshineService.AlarmReceiver class which is responsible for fetching weather data
+    This only reference for using alarmManager.
+   */
+//        Intent intent = new Intent(getActivity(), SunshineService.AlarmReceiver.class);
+//        intent.putExtra(SunshineService.LOCATION_QUERY_EXTRA, Utility.getPreferredLocation(getActivity()));
+//
+//        PendingIntent pendingIntent = PendingIntent.getBroadcast(getActivity(), 0, intent, PendingIntent.FLAG_ONE_SHOT);
+//        AlarmManager alarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
+//        alarmManager.set(AlarmManager.RTC, System.currentTimeMillis()+5000, pendingIntent);
+
     }
+
+    public void setUseTodayLayout(boolean useTodayLayout) {
+        if (mForeCastAdapter != null){
+            mForeCastAdapter.setmUseTodaylayout(useTodayLayout);
+        }
+    }
+
+
 
 }

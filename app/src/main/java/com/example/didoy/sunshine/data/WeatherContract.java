@@ -1,14 +1,9 @@
 package com.example.didoy.sunshine.data;
 
-import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
-import android.text.format.Time;
-import android.util.Log;
 
-import java.net.URI;
-import java.security.PublicKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;

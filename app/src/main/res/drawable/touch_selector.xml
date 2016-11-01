@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <!-- State when a row is being pressed, but hasn't yet been activated (finger down) -->
+    <item android:state_pressed="true"
+        android:drawable="@color/colorPrimaryDark" />
+
+    <item android:state_selected="true"
+        android:drawable="@color/sunshine_light_blue"
+        />
+
+    <!-- state is waiting -->
+    <item android:state_active="true"
+        android:drawable="@color/sunshine_light_blue"
+        />
+
+
+</selector>

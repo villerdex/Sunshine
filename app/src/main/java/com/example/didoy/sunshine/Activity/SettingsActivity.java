@@ -2,44 +2,73 @@ package com.example.didoy.sunshine.Activity;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
-import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.os.Bundle;
 import android.util.Log;
-import android.widget.BaseAdapter;
+import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.example.didoy.sunshine.FetchWeatherTask;
 import com.example.didoy.sunshine.R;
-import com.example.didoy.sunshine.Utility;
+import com.example.didoy.sunshine.Utility.AppCompatPreferenceActivity;
 import com.example.didoy.sunshine.data.WeatherContract;
+import com.example.didoy.sunshine.sync.SunshineSyncAdapter;
 
 import java.util.List;
 
-
-public class SettingsActivity extends PreferenceActivity {
-
+/*
+AppCompatPreferenceActivity is a customize class which
+is necessary to add Actionbar in Preference Activity
+ */
+public class SettingsActivity extends AppCompatPreferenceActivity {
 
     private int MY_PERMISSIONS_STORAGE = 123;
     final static String LOG_TAG = SettingsActivity.class.getSimpleName();
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        super.onCreate(savedInstanceState);
+    }
+
+
+//     The AppCompatPreferenceActivity provides back button in the actionbar
+//    how ever it will not work, Using onOptionsItemSelected as below solves the problem
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     private static boolean onPrefChange(Preference preference, Object newValue, Context context, boolean mBindingPreference) {
         String value = newValue.toString();
 
         if (!mBindingPreference) {
-            if (preference.getKey().equals( context.getString(R.string.preference_location_key))) {
-                FetchWeatherTask weatherTask = new FetchWeatherTask(context);
-                String location = newValue.toString();
-                weatherTask.execute(location);
-                Log.d(LOG_TAG, "starting Featch weather task");
+            if (preference.getKey().equals(context.getString(R.string.preference_location_key))) {
+
+                SunshineSyncAdapter.syncImmediately(context);
+
+                /*
+                The execute method will run the doInBackground Method
+                From the FetchWeatherTask
+                 */
+
+//                FetchWeatherTask weatherTask = new FetchWeatherTask(context);
+//                String location = newValue.toString();
+//                weatherTask.execute(location);
+//                Log.d(LOG_TAG, "starting Featch weather task");
 
             } else {
                 // notify code that weather may be impacted
@@ -65,8 +94,8 @@ public class SettingsActivity extends PreferenceActivity {
 
     }
 
-    private static boolean bindPreferenceSummaryToValue(Preference preference, boolean mBindingPreference ,
-                                                     Preference.OnPreferenceChangeListener prefListener) {
+    private static boolean bindPreferenceSummaryToValue(Preference preference, boolean mBindingPreference,
+                                                        Preference.OnPreferenceChangeListener prefListener) {
         mBindingPreference = true;
 
         // Set the listener to watch for value changes.
@@ -80,9 +109,9 @@ public class SettingsActivity extends PreferenceActivity {
 
 
         mBindingPreference = false;
-
         return mBindingPreference;
     }
+
 
     @Override
     public void onBuildHeaders(List<Header> target) {
@@ -153,7 +182,7 @@ public class SettingsActivity extends PreferenceActivity {
             Preference preference = findPreference(getString(R.string.preference_location_key));
 
             if (preference != null) {
-                mBindingPreference =   bindPreferenceSummaryToValue(preference, mBindingPreference, this);
+                mBindingPreference = bindPreferenceSummaryToValue(preference, mBindingPreference, this);
 
                 if (!value.equals("")) {
                     preference.setSummary(value);
@@ -169,42 +198,44 @@ public class SettingsActivity extends PreferenceActivity {
         }
     }
 
-
     public static class PreferenceTemperatureFragment extends android.preference.PreferenceFragment implements Preference.OnPreferenceChangeListener {
 
         boolean mBindingPreference;
 
         @Override
-            public void onCreate(Bundle savedInstanceState) {
-                super.onCreate(savedInstanceState);
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
 
-                // Load the preferences from an XML resource
-                // this will inflate the resource file
-                addPreferencesFromResource(R.xml.pref_temp);
+            // Load the preferences from an XML resource
+            // this will inflate the resource file
+            addPreferencesFromResource(R.xml.pref_temp);
 
-                // get the value associated with preference name
-                String value = PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(getString(R.string.pref_units_key), "");
+            // get the value associated with preference name
+            String value = PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(getString(R.string.pref_units_key), "");
 
-                // get the preference associated with preference name
-                Preference preference = findPreference(getString(R.string.preference_temperature_key));
+            // get the preference associated with preference name
+            Preference preference = findPreference(getString(R.string.preference_temperature_key));
 
-                if (preference != null) {
+            if (preference != null) {
 
-                  mBindingPreference =   bindPreferenceSummaryToValue(preference, mBindingPreference, this);
+                mBindingPreference = bindPreferenceSummaryToValue(preference, mBindingPreference, this);
 
-                    if (!value.equals("")) {
-                        preference.setSummary(value);
-                    }
-
+                if (!value.equals("")) {
+                    preference.setSummary(value);
                 }
-
             }
 
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                return onPrefChange(preference, newValue, getActivity(), mBindingPreference);
-            }
         }
 
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            return onPrefChange(preference, newValue, getActivity(), mBindingPreference);
+        }
+    }
 
+    @Nullable
+    @Override
+    public Intent getParentActivityIntent() {
+        return super.getParentActivityIntent().addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    }
 }

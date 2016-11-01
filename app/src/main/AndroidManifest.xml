@@ -3,8 +3,14 @@
     package="com.example.didoy.sunshine">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <!--<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>-->
-    <!--<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>-->
+
+    <!-- Permissions required by the sync adapter -->
+    <uses-permission
+        android:name="android.permission.READ_SYNC_SETTINGS"/>
+    <uses-permission
+        android:name="android.permission.WRITE_SYNC_SETTINGS"/>
+    <uses-permission
+        android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
 
     <application
         android:allowBackup="true"
@@ -12,20 +18,69 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Activity.MainActivity">
+
+        <activity
+            android:name=".Activity.MainActivity"
+            android:theme="@style/ForecastTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activity.DetailActivity" />
-        <activity android:name=".Activity.SettingsActivity"></activity>
-        
+
+
+        <activity
+            android:name=".Activity.DetailActivity"
+            android:label="@string/detail_activity_label"
+            android:parentActivityName=".Activity.MainActivity"></activity>
+
+        <activity
+            android:name=".Activity.SettingsActivity"
+            android:parentActivityName=".Activity.MainActivity">
+            android:label="@string/settings_activity_label"
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.didoy.sunshine.Activity.MainActivity" />
+        </activity>
+
+        <!--The "name" attribute is the class path of the extended Content Provider-->
+        <!-- The "authorities" attribute is defined authority in .data.WeatherProvider -->
         <provider
+             android:name=".data.WeatherProvider"
+            android:syncable="true"
+            android:exported="false"
             android:authorities="com.example.didoy.sunshine.app"
-            android:name=".data.WeatherProvider"
             />
+        <!-- a Service use to fetch weather data over the background-->
+        <!--<service-->
+            <!--android:name=".services.SunshineService"></service>-->
+
+        <!--<receiver-->
+            <!--android:name=".services.SunshineService$AlarmReceiver"></receiver>-->
+
+
+        <!-- The SyncAdapter service -->
+        <service
+            android:name=".sync.SunshineSyncService" android:exported="true">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/syncadapter" />
+        </service>
+
+
+        <!-- SyncAdapter's dummy authentication service -->
+        <service android:name=".sync.SunshineAuthenticatorService">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/authenticator" />
+        </service>
 
     </application>
 

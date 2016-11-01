@@ -11,6 +11,4 @@
         android:key="@string/preference_location_key" />
 
 
-
-
 </PreferenceScreen>
