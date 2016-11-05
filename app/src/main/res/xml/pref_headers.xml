@@ -2,13 +2,17 @@
 <preference-headers
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <header android:fragment="com.example.didoy.sunshine.Activity.SettingsActivity$PreferenceFragment"
+    <header android:fragment="com.example.didoy.sunshine.Activity.SettingsActivity$PreferenceLocationFragment"
         android:title="Location"
         android:summary="@string/preference_location_header" />
 
     <header android:fragment="com.example.didoy.sunshine.Activity.SettingsActivity$PreferenceTemperatureFragment"
         android:title="Temperature Setting"
         android:summary="@string/preference_temperature_label" />
+
+    <header android:fragment="com.example.didoy.sunshine.Activity.SettingsActivity$PreferenceNotificationFragment"
+        android:title="Notification Setting"
+        android:summary="@string/pref_enable_notifications_label"/>
 
 
 </preference-headers>

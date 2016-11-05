@@ -8,4 +8,5 @@
         android:entryValues="@array/prefer_temp_option"
         android:entries="@array/prefer_temp_option"
         />
+
 </PreferenceScreen>

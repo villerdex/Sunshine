@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.didoy.sunshine.Activity.DetailActivity;
 import com.example.didoy.sunshine.Activity.SettingsActivity;
@@ -77,6 +78,12 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING,
     };
 
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
 
     @Nullable
     @Override
@@ -141,7 +148,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             startActivity(createShareForecastIntent());
         }
 
-        return true;
+        Toast.makeText(getActivity(), "Detail Fragment", Toast.LENGTH_SHORT).show();
+
+        return super.onOptionsItemSelected(item);
     }
 
     private Intent createShareForecastIntent(){
@@ -214,6 +223,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             float wind = data.getFloat(data.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_WIND_SPEED));
             float windDir = data.getFloat(data.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_DEGREES));
 
+            mForeCast = String.format("%s - %s - %s/%s", Utility.formatDate(date), desc, high, low);
 
             mDateTextView.setText(Utility.formatDate(date));
             mDayTextView.setText(Utility.friendlyDateFormat(getActivity(), date));

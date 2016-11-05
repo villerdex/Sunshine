@@ -1,9 +1,11 @@
 package com.example.didoy.sunshine.Fragment;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -56,7 +58,9 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
             WeatherEntry.COLUMN_HUMIDITY,
             WeatherEntry.COLUMN_WIND_SPEED,
             WeatherEntry.COLUMN_PRESSURE,
-            WeatherEntry.COLUMN_WEATHER_ID
+            WeatherEntry.COLUMN_WEATHER_ID,
+            LocationEntry.COLUMN_COORD_LAT,
+            LocationEntry.COLUMN_COORD_LONG
     };
 
 //    indices that are tied to FORECAST_COLUMNS, if FORECAST_COLUMNS changes then these must change
@@ -70,12 +74,19 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
     public static final int COL_WEATHER_WINDSPEED= 7;
     public static final int COL_WEATHER_PRESSURE = 8;
     public static final int COL_WEATHER_CONDITION_ID = 9;
+    public static final int COL_COORD_LAT = 10;
+    public static final int COL_COORD_LANG = 11;
 
 
     public interface CallBack {
         public void onItemSelected(String date);
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+    }
 
     public ForeCastFragment() {
             setHasOptionsMenu(true);
@@ -85,7 +96,6 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         getLoaderManager().initLoader(LoaderID, null, this);
-        setHasOptionsMenu(true);
 
     }
 
@@ -159,6 +169,11 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
             updateWeather();
         }
 
+
+        if ( item.getItemId() == R.id.action_map ){
+            openPreferedMapLocation();
+        }
+
         if ( item.getItemId() == R.id.settings ){
             Log.d(LOG_TAG, "Setting activity is called");
             Intent intent = new Intent(getActivity(), SettingsActivity.class);
@@ -191,7 +206,6 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor dataCursor) {
 
-        int x = dataCursor.getCount();
         mForeCastAdapter.swapCursor(dataCursor);
 
         if (CURSOR_POSITION != ListView.INVALID_POSITION){
@@ -225,6 +239,35 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
         if (mForeCastAdapter != null){
             mForeCastAdapter.setmUseTodaylayout(useTodayLayout);
         }
+    }
+
+    private void openPreferedMapLocation(){
+
+
+        if (mForeCastAdapter != null){
+
+            Cursor c = mForeCastAdapter.getCursor();
+
+                if (c != null){
+                    c.moveToPosition(0);
+                    String posLat = c.getString(COL_COORD_LAT);
+                    String posLong = c.getString(COL_COORD_LANG);
+                    Uri geoLocation = Uri.parse("geo:" + posLat + "," + posLong);
+
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setData(geoLocation);
+
+                    // finds an activity if a class has not been explicitly specified.
+                    if (intent.resolveActivity(getActivity().getPackageManager()) != null){
+                        startActivity(intent);
+                    }
+                    else {
+                        Log.e(LOG_TAG, "Could not find any appopriate app for location intent");
+                    }
+
+                }
+        }
+
     }
 
 

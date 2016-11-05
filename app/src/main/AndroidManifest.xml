@@ -47,10 +47,10 @@
         <!--The "name" attribute is the class path of the extended Content Provider-->
         <!-- The "authorities" attribute is defined authority in .data.WeatherProvider -->
         <provider
-             android:name=".data.WeatherProvider"
+            android:name=".data.WeatherProvider"
             android:syncable="true"
             android:exported="false"
-            android:authorities="com.example.didoy.sunshine.app"
+            android:authorities="@string/content_authority"
             />
         <!-- a Service use to fetch weather data over the background-->
         <!--<service-->
@@ -63,6 +63,7 @@
         <!-- The SyncAdapter service -->
         <service
             android:name=".sync.SunshineSyncService" android:exported="true">
+
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />
             </intent-filter>

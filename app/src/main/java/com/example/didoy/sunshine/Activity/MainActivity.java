@@ -49,39 +49,13 @@ public class MainActivity extends AppCompatActivity implements ForeCastFragment.
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        if ( item.getItemId() == R.id.action_map ){
-            openPreferedMapLocation();
-        }
-
         if (item.getItemId() == R.id.settings){
             Log.d(LOG_TAG, "  Settings is click " );
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void openPreferedMapLocation(){
-        SharedPreferences sharedPreferences =
-                PreferenceManager.getDefaultSharedPreferences(this);
 
-        String location = sharedPreferences.getString(
-            getString(R.string.preference_location_key),
-            getString(R.string.preference_location_default));
-
-        Uri geoLocation = Uri.parse("geo:0,0?").buildUpon()
-                .appendQueryParameter("q", location)
-                .build();
-
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(geoLocation);
-
-        if (intent.resolveActivity(getPackageManager()) != null){
-            startActivity(intent);
-        }
-
-        else {
-            Log.e(LOG_TAG, "Could not find any appopriate app for location intent");
-        }
-    }
 
     @Override
     public void onItemSelected(String date) {

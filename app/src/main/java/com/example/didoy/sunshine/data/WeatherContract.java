@@ -127,7 +127,6 @@ public class WeatherContract {
 
     public static final String DATE_FORMAT = "yyyyMMdd";
 
-    // Converts a long Unix to valid date
     public static String dateToMills(Date date) {
         // Because the API returns a unix timestamp (measured in seconds),
         // it must be converted to milliseconds in order to be converted to valid date.
