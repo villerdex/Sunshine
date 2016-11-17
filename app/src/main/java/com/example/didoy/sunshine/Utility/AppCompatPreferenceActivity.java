@@ -16,6 +16,10 @@ import android.view.ViewGroup;
  * Created by Didoy on 10/30/2016.
  */
 
+/*
+AppCompatPreferenceActivity is a customize class which
+is necessary to add Actionbar in Preference Activity
+ */
 public abstract  class AppCompatPreferenceActivity extends PreferenceActivity {
 
 

@@ -495,7 +495,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 context.getString(R.string.app_name), context.getString(R.string.sync_account_type));
 
         // If the password doesn't exist, the account doesn't exist
-        if (null == accountManager.getPassword(newAccount)) {
+        if (accountManager.getPassword(newAccount) == null ) {
 
         /*
          * Add the account and account type, no password or user data

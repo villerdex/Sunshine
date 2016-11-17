@@ -37,7 +37,6 @@ import butterknife.ButterKnife;
 
 public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-
     String mForeCast;
     final String SHARE_HASHTAG = " #Sunshine App";
     final String LOG_TAG = DetailActivity.class.getSimpleName();
@@ -58,7 +57,6 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @BindView(R.id.detail_icon)
     ImageView icon;
 
-
     private String mForeCastLocation;
     private String mLocation;
     private String forecastDate ;
@@ -77,7 +75,6 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             WeatherContract.WeatherEntry.COLUMN_WEATHER_ID,
             WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING,
     };
-
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -147,8 +144,6 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         if ( item.getItemId() == R.id.action_share ){
             startActivity(createShareForecastIntent());
         }
-
-        Toast.makeText(getActivity(), "Detail Fragment", Toast.LENGTH_SHORT).show();
 
         return super.onOptionsItemSelected(item);
     }
@@ -235,7 +230,6 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
             mWindTextView.setText(Utility.getFormattedWind(getActivity(), wind, windDir));
             mPressureTextView.setText(this.getString(R.string.format_pressure, pressure));
-
 
             foreCastShare = String.format("%s - %s - %s/%s",
                     mDateTextView.getText(),

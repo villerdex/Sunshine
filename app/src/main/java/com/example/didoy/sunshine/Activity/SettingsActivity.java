@@ -36,6 +36,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // enabling the back button from the actionbar
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         // this method is already deprecated http://stackoverflow.com/questions/6822319/what-to-use-instead-of-addpreferencesfromresource-in-a-preferenceactivity
@@ -43,9 +45,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
     }
 
-
-//     The AppCompatPreferenceActivity provides back button in the actionbar
-//    how ever it will not work, Using onOptionsItemSelected as below solves the problem
+//  the back button that we enable are presented but not working
+//  Using onOptionsItemSelected and calling the finish() as below solves the problem
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -62,17 +63,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         if (!mBindingPreference) {
             if (preference.getKey().equals(context.getString(R.string.preference_location_key))) {
 
-              //  SunshineSyncAdapter.syncImmediately(context);
-
-                /*
-                The execute method will run the doInBackground Method
-                From the FetchWeatherTask
-                 */
-
-//                FetchWeatherTask weatherTask = new FetchWeatherTask(context);
-//                String location = newValue.toString();
-//                weatherTask.execute(location);
-//                Log.d(LOG_TAG, "starting Featch weather task");
+               SunshineSyncAdapter.syncImmediately(context);
 
             } else {
                 // notify code that weather may be impacted
@@ -95,18 +86,13 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             preference.setSummary(value);
         }
         return true;
-
     }
 
     private static boolean bindPreferenceSummaryToValue(Preference preference, boolean mBindingPreference,
                                                         Preference.OnPreferenceChangeListener prefListener, String Datatype) {
-        mBindingPreference = true;
 
         // Set the listener to watch for value changes.
         preference.setOnPreferenceChangeListener(prefListener);
-
-        // Trigger the listener immediately with the preference's
-        // current value.        prefListener.onPreferenceChange(preference,
 
         if (Datatype.toLowerCase().equals("string")){
             PreferenceManager
@@ -131,7 +117,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         super.onBuildHeaders(target);
         //checkReadingStoragePermission();
 
-        //   all the header in the R.xml.pref_headers files are fragments
+        // all the header in the R.xml.pref_headers files are fragments
         // which extends the android.preference.fragment
        loadHeadersFromResource(R.xml.pref_headers, target);  // Load all header in the resource file first
     }

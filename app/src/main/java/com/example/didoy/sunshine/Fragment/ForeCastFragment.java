@@ -165,10 +165,9 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if ( item.getItemId() == R.id.refresh ){
-            updateWeather();
-        }
-
+//        if ( item.getItemId() == R.id.refresh ){
+//            updateWeather();
+//        }
 
         if ( item.getItemId() == R.id.action_map ){
             openPreferedMapLocation();
@@ -242,7 +241,6 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     private void openPreferedMapLocation(){
-
 
         if (mForeCastAdapter != null){
 
