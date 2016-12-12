@@ -2,6 +2,9 @@ package com.example.didoy.sunshine.Utility;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 
@@ -220,4 +223,22 @@ public class Utility extends ActivityCompat {
         return -1;
     }
 
+    public static boolean isNetworkAvailable(Context context) {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+    }
+
+    public static void setLocationStatus(int locationStatus, Context context){
+        SharedPreferences  preference =  PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = preference.edit();
+        editor.putInt(context.getString(R.string.location_status), locationStatus);
+        editor.commit();
+    }
+
+    public static int getLocationStatus( Context context){
+        SharedPreferences  preference =  PreferenceManager.getDefaultSharedPreferences(context);
+            return preference.getInt(context.getString(R.string.location_status), 404);
+    }
 }

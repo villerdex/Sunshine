@@ -4,6 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <TextView
+        android:id="@+id/forecast_fragment_empty_string"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/empty_string"
+        android:layout_gravity="center"/>
+
     <ListView
         style="@style/ForeCastListStyle"
         android:id="@+id/listview_forecast"

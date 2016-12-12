@@ -1,6 +1,7 @@
 package com.example.didoy.sunshine.Fragment;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -44,6 +45,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     final int DETAIL_ID_LOADER = 0;
     public  static  String DATE_KEY = "date";
     private String LOCATION_KEY = "location";
+    private final  String shareKey = "ShareWeather";
 
     @BindView(R.id.detail_day_textview) TextView mDayTextView;
     @BindView(R.id.detail_high_textview) TextView mHighTempTextView;
@@ -142,7 +144,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         }
 
         if ( item.getItemId() == R.id.action_share ){
-            startActivity(createShareForecastIntent());
+
+            Intent shareIntent = createShareForecastIntent();
+                startActivity(shareIntent);
         }
 
         return super.onOptionsItemSelected(item);

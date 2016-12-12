@@ -86,5 +86,14 @@
     <!-- Strings related to Notification preference -->
     <string name="pref_last_notification">last_notification</string>
 
+    <!-- string related to ForecastFragment-->
+    <string name="empty_string">No Weather information Available</string>
+
+    <string name="location_status">locationStatus</string>
+
+    <!--String for server status-->
+    <string name="empty_forecast_list_server_down">No weather information available. The server is not returning data.</string>
+    <string name="empty_forecast_list_server_error">No weather information available. The server is not returning valid data. Please check for an updated version of Sunshine.</string>
+
 
 </resources>

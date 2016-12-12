@@ -20,6 +20,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
+import android.support.annotation.IntDef;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
@@ -37,6 +38,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -93,6 +96,18 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     private static final int INDEX_MAX_TEMP = 1;
     private static final int INDEX_MIN_TEMP = 2;
     private static final int INDEX_SHORT_DESC = 3;
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({LOCATION_STATUS_OK, LOCATION_STATUS_SERVER_DOWN, LOCATION_STATUS_SERVER_INVALID,  LOCATION_STATUS_UNKNOWN})
+    public @interface LocationStatus {}
+
+    public static final int LOCATION_STATUS_OK = 0;
+    public static final int LOCATION_STATUS_SERVER_DOWN = 1;
+    public static final int
+            LOCATION_STATUS_SERVER_INVALID = 2;
+    public static final int
+            LOCATION_STATUS_UNKNOWN = 3;
+
 
     public SunshineSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
@@ -169,7 +184,6 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                     // WEATHER_NOTIFICATION_ID allows you to update the notification later on.
                     mNotificationManager.notify(WEATHER_NOTIFICATION_ID, mBuilder.build());
 
-
                     //refreshing last sync
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putLong(lastNotificationKey, System.currentTimeMillis());
@@ -225,7 +239,6 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
             InputStream inputStream = urlConnection.getInputStream();
 
-            StringBuffer stringBuffer = new StringBuffer();
 
             if (inputStream == null) {
                 // do nothing
@@ -234,6 +247,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
             bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
+            StringBuffer stringBuffer = new StringBuffer();
 
             // Append every line in Json
             String line;
@@ -243,9 +257,9 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 // buffer for debugging.
                 stringBuffer.append(line + "\n");
             }
-
             if (stringBuffer.length() == 0) {
                 // Stream was empty.  No point in parsing.
+                Utility.setLocationStatus(LOCATION_STATUS_SERVER_DOWN, getContext());
                 return;
             }
 
@@ -257,8 +271,10 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             Log.e(LOG_TAG, "Error closing stream", e);
             e.printStackTrace();
         } catch (IOException e) {
+            Utility.setLocationStatus(LOCATION_STATUS_SERVER_DOWN, getContext());
             e.printStackTrace();
-        } finally {
+        }
+        finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
             }
@@ -271,10 +287,11 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             }
         }
 
-
         try {
             getWeatherDataFromJson(JsonForCast, numDays, locationQuery);
+            Utility.setLocationStatus(LOCATION_STATUS_OK, getContext());
         } catch (JSONException ex) {
+            Utility.setLocationStatus(LOCATION_STATUS_SERVER_INVALID, getContext());
             ex.printStackTrace();
         }
     }
@@ -315,8 +332,8 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         JSONObject cityJson = foreCastJson.getJSONObject(OWM_CITY);
         String cityName = cityJson.getString(OWM_CITY_NAME);
         JSONObject coordJSON = cityJson.getJSONObject(OWM_COORD);
-        double cityLatitude = coordJSON.getLong(OWM_COORD_LAT);
-        double cityLongitude = coordJSON.getLong(OWM_COORD_LONG);
+        double cityLatitude = coordJSON.getDouble(OWM_COORD_LAT);
+        double cityLongitude = coordJSON.getDouble(OWM_COORD_LONG);
 
         long locationID = addLocation(locationSetting, cityName, cityLatitude, cityLongitude);
 

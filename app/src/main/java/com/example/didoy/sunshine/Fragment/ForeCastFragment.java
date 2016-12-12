@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.example.didoy.sunshine.Activity.SettingsActivity;
 import com.example.didoy.sunshine.R;
@@ -31,25 +32,28 @@ import com.example.didoy.sunshine.sync.SunshineSyncAdapter;
 
 import java.util.Date;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /**
  * Created by Didoy on 10/6/2016.
  */
 
-public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-
+public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener {
 
     static final String LOG_TAG = ForeCastFragment.class.getSimpleName();
     private String mlocation;
     private boolean mUseTodaylayout = false;
+    private SharedPreferences sharedPreferences;
 
     private ForeCastAdapter mForeCastAdapter;
-    public static final int LoaderID  = 0;
+    public static final int LoaderID = 0;
     private ListView listView;
     private int CURSOR_POSITION = ListView.INVALID_POSITION;
     private static final String SELECTED_KEY = "selected_position";
 
     String[] FORECAST_COLUMNS = {
-            WeatherEntry.TABLE_NAME + "." +WeatherEntry._ID,
+            WeatherEntry.TABLE_NAME + "." + WeatherEntry._ID,
             WeatherEntry.COLUMN_DATETEXT,
             WeatherEntry.COLUMN_SHORT_DESC,
             WeatherEntry.COLUMN_MIN,
@@ -63,7 +67,7 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
             LocationEntry.COLUMN_COORD_LONG
     };
 
-//    indices that are tied to FORECAST_COLUMNS, if FORECAST_COLUMNS changes then these must change
+    //    indices that are tied to FORECAST_COLUMNS, if FORECAST_COLUMNS changes then these must change
     public static final int COL_WEATHER_ID = 0;
     public static final int COL_WEATHER_DATE = 1;
     public static final int COL_WEATHER_DESC = 2;
@@ -71,11 +75,13 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
     public static final int COL_WEATHER_MAX = 4;
     public static final int COL_LOCATION_SETTING = 5;
     public static final int COL_WEATHER_HUMIDITY = 6;
-    public static final int COL_WEATHER_WINDSPEED= 7;
+    public static final int COL_WEATHER_WINDSPEED = 7;
     public static final int COL_WEATHER_PRESSURE = 8;
     public static final int COL_WEATHER_CONDITION_ID = 9;
     public static final int COL_COORD_LAT = 10;
     public static final int COL_COORD_LANG = 11;
+
+    @BindView(R.id.forecast_fragment_empty_string) TextView emptyText;
 
 
     public interface CallBack {
@@ -89,7 +95,7 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     public ForeCastFragment() {
-            setHasOptionsMenu(true);
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -107,55 +113,71 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onResume() {
         super.onResume();
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
-        if (mlocation != null && !Utility.getPreferredLocation(getActivity()).equals(mlocation)){
+        if (mlocation != null && !Utility.getPreferredLocation(getActivity()).equals(mlocation)) {
             getLoaderManager().restartLoader(LoaderID, null, this);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals(R.string.location_status)) {
+            updateEmptyViewText();
         }
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
 
-        if (CURSOR_POSITION != ListView.INVALID_POSITION){
+        if (CURSOR_POSITION != ListView.INVALID_POSITION) {
             outState.putInt(SELECTED_KEY, CURSOR_POSITION);
         }
         super.onSaveInstanceState(outState);
     }
 
     @Nullable
-        @Override
-        public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    @Override
+    public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-             mForeCastAdapter = new ForeCastAdapter(getActivity(), null, 0);
+        mForeCastAdapter = new ForeCastAdapter(getActivity(), null, 0);
 
-            View rootView = inflater.inflate(R.layout.fragment_forcast_layout, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_forcast_layout, container, false);
 
-            listView = (ListView) rootView.findViewById(R.id.listview_forecast);
-            listView.setAdapter(mForeCastAdapter);
+        listView = (ListView) rootView.findViewById(R.id.listview_forecast);
+        listView.setAdapter(mForeCastAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                mForeCastAdapter = (ForeCastAdapter) parent.getAdapter();
 
-                    mForeCastAdapter = (ForeCastAdapter) parent.getAdapter();
+                Cursor cursor = mForeCastAdapter.getCursor();
 
-                    Cursor cursor =  mForeCastAdapter.getCursor();
-
-                    if (cursor != null && cursor.moveToPosition(position)){
-                            ((CallBack) getActivity()).onItemSelected(cursor.getString(COL_WEATHER_DATE));
-                             CURSOR_POSITION = position;
-                    }
+                if (cursor != null && cursor.moveToPosition(position)) {
+                    ((CallBack) getActivity()).onItemSelected(cursor.getString(COL_WEATHER_DATE));
+                    CURSOR_POSITION = position;
                 }
-            });
+            }
+        });
 
-                if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)){
-                    CURSOR_POSITION = savedInstanceState.getInt(SELECTED_KEY);
-                }
-
-            mForeCastAdapter.setmUseTodaylayout(mUseTodaylayout);
-
-            return rootView;
+        if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
+            CURSOR_POSITION = savedInstanceState.getInt(SELECTED_KEY);
         }
+
+        mForeCastAdapter.setmUseTodaylayout(mUseTodaylayout);
+
+        ButterKnife.bind(this, rootView);
+        return rootView;
+    }
 
 
     @Override
@@ -169,11 +191,11 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
 //            updateWeather();
 //        }
 
-        if ( item.getItemId() == R.id.action_map ){
+        if (item.getItemId() == R.id.action_map) {
             openPreferedMapLocation();
         }
 
-        if ( item.getItemId() == R.id.settings ){
+        if (item.getItemId() == R.id.settings) {
             Log.d(LOG_TAG, "Setting activity is called");
             Intent intent = new Intent(getActivity(), SettingsActivity.class);
             startActivity(intent);
@@ -190,7 +212,7 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
         String sortOrder = WeatherEntry.COLUMN_DATETEXT + " ASC";
 
         mlocation = Utility.getPreferredLocation(getActivity());
-        Uri weatherURI = WeatherEntry.buildWeatherLocationWithStartDate(mlocation , startDate);
+        Uri weatherURI = WeatherEntry.buildWeatherLocationWithStartDate(mlocation, startDate);
 
         return new CursorLoader(
                 getActivity(),
@@ -204,12 +226,12 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor dataCursor) {
-
         mForeCastAdapter.swapCursor(dataCursor);
-
-        if (CURSOR_POSITION != ListView.INVALID_POSITION){
-            listView.setSelection(CURSOR_POSITION  );
+        if (CURSOR_POSITION != ListView.INVALID_POSITION) {
+            listView.setSelection(CURSOR_POSITION);
         }
+        updateEmptyViewText();
+
     }
 
     @Override
@@ -217,7 +239,7 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
         mForeCastAdapter.swapCursor(null);
     }
 
-    private void updateWeather(){
+    private void updateWeather() {
 
         SunshineSyncAdapter.syncImmediately(getActivity());
 
@@ -235,39 +257,61 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     public void setUseTodayLayout(boolean useTodayLayout) {
-        if (mForeCastAdapter != null){
+        if (mForeCastAdapter != null) {
             mForeCastAdapter.setmUseTodaylayout(useTodayLayout);
         }
     }
 
-    private void openPreferedMapLocation(){
+    private void openPreferedMapLocation() {
 
-        if (mForeCastAdapter != null){
+        if (mForeCastAdapter != null) {
 
             Cursor c = mForeCastAdapter.getCursor();
 
-                if (c != null){
-                    c.moveToPosition(0);
-                    String posLat = c.getString(COL_COORD_LAT);
-                    String posLong = c.getString(COL_COORD_LANG);
-                    Uri geoLocation = Uri.parse("geo:" + posLat + "," + posLong);
+            if (c != null) {
+                c.moveToPosition(0);
+                String posLat = c.getString(COL_COORD_LAT);
+                String posLong = c.getString(COL_COORD_LANG);
+                Uri geoLocation = Uri.parse("geo:" + posLat + "," + posLong);
 
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setData(geoLocation);
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(geoLocation);
 
-                    // finds an activity if a class has not been explicitly specified.
-                    if (intent.resolveActivity(getActivity().getPackageManager()) != null){
-                        startActivity(intent);
-                    }
-                    else {
-                        Log.e(LOG_TAG, "Could not find any appopriate app for location intent");
-                    }
-
+                // finds an activity if a class has not been explicitly specified.
+                if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
+                    startActivity(intent);
+                } else {
+                    Log.e(LOG_TAG, "Could not find any appropriate app for location intent");
                 }
+            }
         }
-
     }
 
+    // whenever the server failed to fetch data this method must be called
+    private void updateEmptyViewText( ){
 
+        String message = "";
+        if (mForeCastAdapter.getCount() <= 0 ){
+            emptyText.setVisibility(View.VISIBLE);
+            @SunshineSyncAdapter.LocationStatus int location = Utility.getLocationStatus(getContext());
+
+            switch (location){
+                case SunshineSyncAdapter.LOCATION_STATUS_SERVER_DOWN:
+                    message = getString(R.string.empty_forecast_list_server_down);
+                    break;
+                case SunshineSyncAdapter.LOCATION_STATUS_SERVER_INVALID:
+                    message =  getString(R.string.empty_forecast_list_server_error);
+                    break;
+                default:
+                    if (!Utility.isNetworkAvailable(getContext())){
+                        message = "Please connect to internet";
+                    }
+            }
+        }else {
+            emptyText.setVisibility(View.INVISIBLE);
+        }
+
+        emptyText.setText(message);
+    }
 
 }
