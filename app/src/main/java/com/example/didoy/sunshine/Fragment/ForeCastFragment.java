@@ -25,6 +25,7 @@ import android.widget.TextView;
 import com.example.didoy.sunshine.Activity.SettingsActivity;
 import com.example.didoy.sunshine.R;
 import com.example.didoy.sunshine.Utility.Utility;
+import com.example.didoy.sunshine.Utility.UtilityLocation;
 import com.example.didoy.sunshine.data.WeatherContract;
 import com.example.didoy.sunshine.data.WeatherContract.LocationEntry;
 import com.example.didoy.sunshine.data.WeatherContract.WeatherEntry;
@@ -116,7 +117,7 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
-        if (mlocation != null && !Utility.getPreferredLocation(getActivity()).equals(mlocation)) {
+        if (mlocation != null && !UtilityLocation.getPreferredLocation(getActivity()).equals(mlocation)) {
             getLoaderManager().restartLoader(LoaderID, null, this);
         }
     }
@@ -211,7 +212,7 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
 
         String sortOrder = WeatherEntry.COLUMN_DATETEXT + " ASC";
 
-        mlocation = Utility.getPreferredLocation(getActivity());
+        mlocation = UtilityLocation.getPreferredLocation(getActivity());
         Uri weatherURI = WeatherEntry.buildWeatherLocationWithStartDate(mlocation, startDate);
 
         return new CursorLoader(
@@ -293,7 +294,7 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
         String message = "";
         if (mForeCastAdapter.getCount() <= 0 ){
             emptyText.setVisibility(View.VISIBLE);
-            @SunshineSyncAdapter.LocationStatus int location = Utility.getLocationStatus(getContext());
+            @SunshineSyncAdapter.LocationStatus int location = UtilityLocation.getLocationStatus(getContext());
 
             switch (location){
                 case SunshineSyncAdapter.LOCATION_STATUS_SERVER_DOWN:
@@ -301,6 +302,9 @@ public class ForeCastFragment extends Fragment implements LoaderManager.LoaderCa
                     break;
                 case SunshineSyncAdapter.LOCATION_STATUS_SERVER_INVALID:
                     message =  getString(R.string.empty_forecast_list_server_error);
+                    break;
+                case SunshineSyncAdapter.LOCATION_STATUS_INVALID:
+                    message =  getString(R.string.empty_forecast_list_invalid_location);
                     break;
                 default:
                     if (!Utility.isNetworkAvailable(getContext())){

@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.example.didoy.sunshine.Utility.Utility;
+import com.example.didoy.sunshine.Utility.UtilityLocation;
 import com.example.didoy.sunshine.data.WeatherContract;
 
 import org.json.JSONArray;
@@ -295,7 +296,7 @@ public class SunshineService extends IntentService  {
         @Override
         public void onReceive(Context context, Intent intent) {
             Intent sendIntent = new Intent(context, SunshineService.class);
-            sendIntent.putExtra(SunshineService.LOCATION_QUERY_EXTRA, Utility.getPreferredLocation(context));
+            sendIntent.putExtra(SunshineService.LOCATION_QUERY_EXTRA, UtilityLocation.getPreferredLocation(context));
             context.startService(sendIntent);
         }
     }

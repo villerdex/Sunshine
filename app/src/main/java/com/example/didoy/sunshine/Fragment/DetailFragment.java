@@ -27,6 +27,7 @@ import com.example.didoy.sunshine.Activity.DetailActivity;
 import com.example.didoy.sunshine.Activity.SettingsActivity;
 import com.example.didoy.sunshine.R;
 import com.example.didoy.sunshine.Utility.Utility;
+import com.example.didoy.sunshine.Utility.UtilityLocation;
 import com.example.didoy.sunshine.data.WeatherContract;
 
 import butterknife.BindView;
@@ -111,7 +112,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
         Bundle bundle = getArguments();
         if ( mLocation != null &&
-                !mLocation.equals(Utility.getPreferredLocation(getActivity())) &&
+                !mLocation.equals(UtilityLocation.getPreferredLocation(getActivity())) &&
                 bundle != null &&
                 bundle.containsKey(DetailActivity.DATE_KEY ) )
         {
@@ -187,7 +188,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
         forecastDate = getArguments().getString(DetailActivity.DATE_KEY);
 
-        mLocation = Utility.getPreferredLocation(getActivity());
+        mLocation = UtilityLocation.getPreferredLocation(getActivity());
         Uri weatherURI = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(mLocation, forecastDate);
 
         return new CursorLoader(

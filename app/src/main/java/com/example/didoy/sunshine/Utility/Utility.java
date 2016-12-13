@@ -22,11 +22,7 @@ import java.util.Date;
 
 public class Utility extends ActivityCompat {
 
-    public static String getPreferredLocation(Context context) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        return prefs.getString(context.getString(R.string.preference_location_key),
-                context.getString(R.string.preference_location_default));
-    }
+
 
     public static boolean isMetric(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -92,7 +88,6 @@ public class Utility extends ActivityCompat {
             }
 
         }
-
 
         return friendlyString;
     }
@@ -230,15 +225,4 @@ public class Utility extends ActivityCompat {
         return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
     }
 
-    public static void setLocationStatus(int locationStatus, Context context){
-        SharedPreferences  preference =  PreferenceManager.getDefaultSharedPreferences(context);
-        SharedPreferences.Editor editor = preference.edit();
-        editor.putInt(context.getString(R.string.location_status), locationStatus);
-        editor.commit();
-    }
-
-    public static int getLocationStatus( Context context){
-        SharedPreferences  preference =  PreferenceManager.getDefaultSharedPreferences(context);
-            return preference.getInt(context.getString(R.string.location_status), 404);
-    }
 }

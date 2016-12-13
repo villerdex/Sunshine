@@ -28,6 +28,7 @@ import android.util.Log;
 import com.example.didoy.sunshine.Activity.MainActivity;
 import com.example.didoy.sunshine.R;
 import com.example.didoy.sunshine.Utility.Utility;
+import com.example.didoy.sunshine.Utility.UtilityLocation;
 import com.example.didoy.sunshine.data.WeatherContract;
 
 import org.json.JSONArray;
@@ -98,16 +99,14 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     private static final int INDEX_SHORT_DESC = 3;
 
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({LOCATION_STATUS_OK, LOCATION_STATUS_SERVER_DOWN, LOCATION_STATUS_SERVER_INVALID,  LOCATION_STATUS_UNKNOWN})
+    @IntDef({LOCATION_STATUS_OK, LOCATION_STATUS_SERVER_DOWN, LOCATION_STATUS_SERVER_INVALID,  LOCATION_STATUS_UNKNOWN, LOCATION_STATUS_INVALID})
     public @interface LocationStatus {}
 
     public static final int LOCATION_STATUS_OK = 0;
     public static final int LOCATION_STATUS_SERVER_DOWN = 1;
-    public static final int
-            LOCATION_STATUS_SERVER_INVALID = 2;
-    public static final int
-            LOCATION_STATUS_UNKNOWN = 3;
-
+    public static final int LOCATION_STATUS_SERVER_INVALID = 2;
+    public static final int LOCATION_STATUS_UNKNOWN = 3;
+    public static final int LOCATION_STATUS_INVALID = 4;
 
     public SunshineSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
@@ -132,7 +131,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
             if (System.currentTimeMillis() - lastSync >= DAY_IN_MILLIS) {
                 // Last sync was more than 1 day ago, let's send a notification with the weather.
-                String locationQuery = Utility.getPreferredLocation(context);
+                String locationQuery = UtilityLocation.getPreferredLocation(context);
 
                 Uri weatherUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationQuery, WeatherContract.dateToMills(new Date()));
 
@@ -197,7 +196,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
 
-        String locationQuery = Utility.getPreferredLocation(getContext());
+        String locationQuery = UtilityLocation.getPreferredLocation(getContext());
 
         HttpURLConnection urlConnection = null;
         BufferedReader bufferedReader = null;
@@ -259,7 +258,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             }
             if (stringBuffer.length() == 0) {
                 // Stream was empty.  No point in parsing.
-                Utility.setLocationStatus(LOCATION_STATUS_SERVER_DOWN, getContext());
+                UtilityLocation.setLocationStatus(LOCATION_STATUS_SERVER_DOWN, getContext());
                 return;
             }
 
@@ -271,7 +270,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             Log.e(LOG_TAG, "Error closing stream", e);
             e.printStackTrace();
         } catch (IOException e) {
-            Utility.setLocationStatus(LOCATION_STATUS_SERVER_DOWN, getContext());
+            UtilityLocation.setLocationStatus(LOCATION_STATUS_SERVER_DOWN, getContext());
             e.printStackTrace();
         }
         finally {
@@ -289,9 +288,9 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
         try {
             getWeatherDataFromJson(JsonForCast, numDays, locationQuery);
-            Utility.setLocationStatus(LOCATION_STATUS_OK, getContext());
+            UtilityLocation.setLocationStatus(LOCATION_STATUS_OK, getContext());
         } catch (JSONException ex) {
-            Utility.setLocationStatus(LOCATION_STATUS_SERVER_INVALID, getContext());
+            UtilityLocation.setLocationStatus(LOCATION_STATUS_SERVER_INVALID, getContext());
             ex.printStackTrace();
         }
     }
@@ -324,6 +323,8 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         final String OWM_WEATHER = "weather";
         final String OWM_WEATHER_ID = "id";
 
+        final String OWM_COD = "cod";
+
 
         JSONObject foreCastJson = new JSONObject(jsonStringData);
         JSONArray weatherArray = foreCastJson.getJSONArray(OWM_LIST);
@@ -332,8 +333,14 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         JSONObject cityJson = foreCastJson.getJSONObject(OWM_CITY);
         String cityName = cityJson.getString(OWM_CITY_NAME);
         JSONObject coordJSON = cityJson.getJSONObject(OWM_COORD);
+        int serviceStatus = foreCastJson.getInt(OWM_COD);
+
         double cityLatitude = coordJSON.getDouble(OWM_COORD_LAT);
         double cityLongitude = coordJSON.getDouble(OWM_COORD_LONG);
+
+        if (serviceStatus == 404){
+            UtilityLocation.setLocationStatus(SunshineSyncAdapter.LOCATION_STATUS_SERVER_INVALID, getContext());
+        }
 
         long locationID = addLocation(locationSetting, cityName, cityLatitude, cityLongitude);
 

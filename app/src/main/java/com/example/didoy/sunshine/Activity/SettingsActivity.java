@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.example.didoy.sunshine.R;
 import com.example.didoy.sunshine.Utility.AppCompatPreferenceActivity;
+import com.example.didoy.sunshine.Utility.UtilityLocation;
 import com.example.didoy.sunshine.data.WeatherContract;
 import com.example.didoy.sunshine.sync.SunshineSyncAdapter;
 
@@ -196,6 +197,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
         @Override
         public boolean onPreferenceChange(Preference preference, Object newValue) {
+            UtilityLocation.resetLocationStatus(getActivity());
             return onPrefChange(preference, newValue, getActivity(), mBindingPreference);
         }
     }
